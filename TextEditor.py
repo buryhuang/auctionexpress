@@ -232,6 +232,7 @@ class TextView(wx.lib.docview.View):
         self._wordWrap = wx.ConfigBase_Get().ReadInt("TextEditorWordWrap", True)
         self._statusString = '尚未开始'
         self._statusTextCtrls = []
+        self._statusPanels = []
         self._actionListCtrls = []
         self._actionButtons = []
         self._checkCodeImageCtrls = []
@@ -522,9 +523,9 @@ class TextView(wx.lib.docview.View):
                     notes = ''
                     if browser.contents.find('抱歉，此宝贝还没有开始出售'):
                         notes = '还没有开始出售'
-                    self.PreStateChange(itemIndex)
-                    self._workerThreadEventSignals[itemIndex]=TaobaoWorkerEvent.EVT_GET_CHECKCODE
-                    self._workerThreadEvents[itemIndex].set()
+                    #self.PreStateChange(itemIndex)
+                    #self._workerThreadEventSignals[itemIndex]=TaobaoWorkerEvent.EVT_GET_CHECKCODE
+                    #self._workerThreadEvents[itemIndex].set()
                     #self.SetState(itemIndex,self.STATE_WAITFORCHECKCODE)
                 else:
                     self.SetState(itemIndex,self.STATE_BIDFAILED)
@@ -608,6 +609,9 @@ class TextView(wx.lib.docview.View):
     def GetActionHandler(self,index):
         def OnAction(event):
             curState = self._workerStates[index]
+            self._statusPanels[index].SetBackgroundColour(wx.LIGHT_GREY)
+            self._statusPanels[index].Hide()
+            self._statusPanels[index].Show()
             #print 'item %d curState is %d' % (int(index),int(curState))
             
             #perform action, state may change here
@@ -660,20 +664,35 @@ class TextView(wx.lib.docview.View):
         curState = self._workerStates[index]
         #print 'item %d curState is %d' % (int(index),int(curState))
 
-        #change label according to state
+        #change label & color according to state
         curState = self._workerStates[index]
         if curState == self.STATE_NOTSTARTED:
             self._statusTextCtrls[index].SetLabel(_("运行状态: 工人尚未开启"))
+            self._statusPanels[index].SetBackgroundColour(wx.LIGHT_GREY)
+            self._statusPanels[index].Hide()
+            self._statusPanels[index].Show()
         elif curState == self.STATE_WAITFORCHECKCODE:
             label = '运行状态: 等待输入验证码[%s]' % self._statusNotes[index]
             self._statusTextCtrls[index].SetLabel(_(label))
+            self._statusPanels[index].SetBackgroundColour(wx.Colour(255,165,0))
+            self._statusPanels[index].Hide()
+            self._statusPanels[index].Show()
         elif curState == self.STATE_WAITFORBID:
             self._statusTextCtrls[index].SetLabel(_("运行状态: 等待发起拍卖"))
+            self._statusPanels[index].SetBackgroundColour(wx.Colour(255,165,0))
+            self._statusPanels[index].Hide()
+            self._statusPanels[index].Show()
         elif curState == self.STATE_BIDDONE:
             self._statusTextCtrls[index].SetLabel(_("运行状态: 抢拍成功!"))
+            self._statusPanels[index].SetBackgroundColour(wx.GREEN)
+            self._statusPanels[index].Hide()
+            self._statusPanels[index].Show()
         elif curState == self.STATE_BIDFAILED:
             label = '运行状态: 抢拍失败[%s]' % self._statusNotes[index]
             self._statusTextCtrls[index].SetLabel(_(label))
+            self._statusPanels[index].SetBackgroundColour(wx.Colour(255,255,0))
+            self._statusPanels[index].Hide()
+            self._statusPanels[index].Show()
             
         #change the action list according to state
         self._actionListCtrls[index].Clear()
@@ -867,11 +886,17 @@ class TextView(wx.lib.docview.View):
             gridCellBaseSizer = wx.StaticBoxSizer(tmpStatic,wx.VERTICAL)
             
             #status Row
+            statusPanel = wx.Panel(scrollWindow,-1)
+            statusPanel.SetBackgroundColour(wx.LIGHT_GREY)
+            statusPanelSizer = wx.BoxSizer()
             statusSizer = wx.StaticBoxSizer(wx.StaticBox(scrollWindow,-1),wx.HORIZONTAL)
-            statusText = wx.StaticText(scrollWindow,-1,size=wx.Size(200,20))
+            statusText = wx.StaticText(statusPanel,-1,size=wx.Size(200,20))
             statusText.SetLabel(_("运行状态: 工人尚未开启"))
             self._statusTextCtrls.append(statusText)
-            statusSizer.Add(statusText,1,wx.ALIGN_CENTER_HORIZONTAL)
+            self._statusPanels.append(statusPanel)
+            statusPanelSizer.Add(statusText)
+            statusPanel.SetSizer(statusPanelSizer)
+            statusSizer.Add(statusPanel,1,wx.ALIGN_CENTER_HORIZONTAL)
             
             #action Row
             actionSizer = wx.StaticBoxSizer(wx.StaticBox(scrollWindow,-1),wx.HORIZONTAL)
