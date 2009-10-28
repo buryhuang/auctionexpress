@@ -98,9 +98,9 @@ class TaobaoWorkerEvent:
     }
 
 class GlobalConfigParm:
-    MAX_WORKER_NUM = 24
+    MAX_WORKER_NUM = 48
     WORKER_COL = 3
-    WORKER_ROW = 8
+    WORKER_ROW = 16
     AUCTION_TIMER_INTERVAL = 10 #Millisecond = 1/1000 second
 
 def DebugLog(logstr):
