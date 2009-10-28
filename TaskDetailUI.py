@@ -434,7 +434,8 @@ class TaskDetailDialog(wx.Dialog):
                 foundItems += 1
 
             #for in stock: id=J_SpanStock>35</SPAN>件)
-            p = re.compile('J_SpanStock\">(\d+)<\/span>件',re.S)
+            #new: span id="J_SpanStock" class="count">3</span>件)
+            p = re.compile('J_SpanStock\" class=\"count\">(\d+)<\/span>件',re.S)
             quantityTotal = p.findall(browser.contents)
             if len(quantityTotal)>0 :
                 self._detailPanel._quantityTotalTextCtrl.SetValue(str(quantityTotal[0]))
