@@ -237,6 +237,7 @@ class TextView(wx.lib.docview.View):
         self._actionButtons = []
         self._checkCodeImageCtrls = []
         self._checkCodeTextCtrls = []
+        self._checkCodeStatus = []
         self._workerLogListCtrls = []
         max_worker_num = GlobalConfigParm.MAX_WORKER_NUM
         self._statusNotes = ['']*max_worker_num
@@ -396,7 +397,7 @@ class TextView(wx.lib.docview.View):
                                 browser.open(newurl)
                             else:
                                 #wx.MessageBox('无法获取验证码,请确认账号,密码等信息是否正确')
-                                self.SetState(itemIndex,self.STATE_BIDFAILED,'无法获取验证码')
+                                self.SetState(itemIndex,self.STATE_BIDFAILED,'无法获取验证码1')
                                 continue
                         #print browser.contents
                         LoginIntoTaobao(browser,self.GetDocument()._data._account,self.GetDocument()._data._password)
@@ -418,11 +419,14 @@ class TextView(wx.lib.docview.View):
                         self._checkCodeImageCtrls[itemIndex].Show(True)
                         self._checkCodeTextCtrls[itemIndex].SetValue('')
                         self._checkCodeTextCtrls[itemIndex].Enable(True)
+                        self._checkCodeStatus[itemIndex] = True
                         
-                        self.SetState(itemIndex,self.STATE_WAITFORCHECKCODE)
+                        self.SetState(itemIndex,self.STATE_WAITFORCHECKCODE,'需要验证码')
                     else:
                         #wx.MessageBox('无法获取验证码,请确认账号,密码等信息是否正确')
-                        self.SetState(itemIndex,self.STATE_BIDFAILED,'无法获取验证码')
+                        #self.SetState(itemIndex,self.STATE_BIDFAILED,'无法获取验证码2')
+                        self.SetState(itemIndex,self.STATE_WAITFORBID,'无须验证码')
+                        self._checkCodeStatus[itemIndex] = False
                 else:
                     #wx.MessageBox('无法获取验证码,请确认账号,密码等信息是否正确')
                     self.SetState(itemIndex,self.STATE_BIDFAILED,'无法获取验证码页面')
@@ -502,7 +506,8 @@ class TextView(wx.lib.docview.View):
                 
                 #set checkcode
                 #print self._checkCodeTextCtrls[itemIndex].GetValue()
-                form.getControl(name='_fma.b._0.c').value=self._checkCodeTextCtrls[itemIndex].GetValue().encode('gbk')
+                if self._checkCodeStatus[itemIndex]:
+                	form.getControl(name='_fma.b._0.c').value=self._checkCodeTextCtrls[itemIndex].GetValue().encode('gbk')
                 
                 #set comment to null
                 form.getControl(name='_fma.b._0.w').value=''
@@ -921,6 +926,7 @@ class TextView(wx.lib.docview.View):
             checkCodeTextCtrl.Enable(False)
             checkCodeTextCtrl.Bind(wx.EVT_TEXT ,self.GetCheckCodeTextChangeHandler(i))
             self._checkCodeTextCtrls.append(checkCodeTextCtrl)
+            self._checkCodeStatus.append(True)
             checkCodeSizer.Add(checkCodeImageCtrl)
             checkCodeSizer.Add(checkCodeTextCtrl)
             
